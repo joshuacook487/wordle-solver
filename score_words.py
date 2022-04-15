@@ -1,109 +1,83 @@
-from wordle_data import pickle_load
+from wordle_data import pickle_load, generate_responses
 from resolve_guess import resolve_guess
+from eliminate_answers import eliminate_answers
 import numpy as np
 
 
-# def score_words(words):
-#     scores = {}
-#
-#     hit_score_best = 0
-#     max_remaining_best = 2315
-#     ave_remaining_best = 2315
-#
-#     for guess in words:
-#
-#         guess_responses = {}
-#         hit_score = 0
-#
-#         for hypothetical_solution in words:
-#             result = resolve_guess(guess, hypothetical_solution)
-#
-#             if result in guess_responses.keys():
-#                 guess_responses[result] += 1
-#
-#             else:
-#                 guess_responses[result] = 1
-#
-#         for response, instances in guess_responses.items():
-#             hits = 0
-#             for r in response:
-#                 hits += int(r)
-#
-#             hits = hits * instances
-#             hit_score += hits
-#
-#         max_remaining = max(guess_responses.values())
-#         ave_remaining = sum(guess_responses.values()) / len(guess_responses)
-#
-#         score = (hit_score, max_remaining, ave_remaining)
-#
-#         if hit_score > hit_score_best:
-#             scores[guess] = score
-#             hit_score_best = hit_score
-#
-#         elif max_remaining < max_remaining_best:
-#             scores[guess] = score
-#             max_remaining_best = max_remaining
-#
-#         elif ave_remaining < ave_remaining_best:
-#             scores[guess] = score
-#             ave_remaining_best = ave_remaining
-#
-#     return scores
-
-
-def score_words(words):
-    scores = {}
-
-    hit_score_best = 0
-    max_remaining_best = 2315
-    ave_remaining_best = 2315
-
+def score_by_info(words):
     for guess in words:
 
         guess_responses = {}
         hit_score = 0
 
         for hypothetical_solution in words:
-            result = resolve_guess(guess, hypothetical_solution)
+            guess_response = resolve_guess(guess, hypothetical_solution)
 
-            if result in guess_responses.keys():
-                guess_responses[result] += 1
+            if guess_response in guess_responses.keys():
+                guess_responses[guess_response] += 1
 
             else:
-                guess_responses[result] = 1
+                guess_responses[guess_response] = 1
 
         for response, instances in guess_responses.items():
             hits = 0
-            for r in response:
-                hits += int(r)
+            for i in range(5):
+                hits += (int(response[i]))
 
-            hits = hits * instances
             hit_score += hits
 
-        max_remaining = max(guess_responses.values())
-        ave_remaining = sum(guess_responses.values()) / len(guess_responses)
+        yield guess, hit_score
 
-        score = (hit_score, max_remaining, ave_remaining)
 
-        if hit_score > hit_score_best:
-            scores[guess] = score
-            hit_score_best = hit_score
+def score_elimination(words):
+    for guess in words:
 
-        elif max_remaining < max_remaining_best:
-            scores[guess] = score
-            max_remaining_best = max_remaining
+        guess_responses = np.ndarray(shape=(3, 3, 3, 3, 3))
+        max_remaining = 0
 
-        elif ave_remaining < ave_remaining_best:
-            scores[guess] = score
-            ave_remaining_best = ave_remaining
+        for r in generate_responses():
+            remaining_words = len(eliminate_answers(guess, r, words))
 
-    return scores
+            guess_responses[
+                int(r[0])][int(r[1])][int(r[2])][int(r[3])][int(r[4])] \
+                = remaining_words
+
+            if remaining_words >= max_remaining:
+                max_remaining = remaining_words
+
+        sum_remaining = guess_responses.sum()
+        sum_responses = (guess_responses != 0).sum()
+
+        mean_remaining = np.true_divide(
+            sum_remaining, sum_responses
+        )
+
+        pruned_mean = np.true_divide(
+            (sum_remaining - max_remaining),
+            (sum_responses - 1)
+        )
+
+        yield guess, max_remaining, mean_remaining, pruned_mean
+
+
+def _test():
+    answer_words = pickle_load("answer_words.pickle")
+    high_score = 600
+
+    # for v, w in score_by_info(answer_words):
+    #     if w >= high_score:
+    #         print(v, w)
+
+    for x, y, z, z0 in score_elimination(answer_words):
+
+        if y <= 200:
+            print(x, y, z, z0, sep="\t\t")
+
+        elif z <= 17:
+            print(x, y, z, z0, sep="\t\t")
+
+
 
 
 if __name__ == "__main__":
-    answer_words = pickle_load("answer_words.pickle")
-    answer_scores = score_words(answer_words)
-
-    for k, v in answer_scores.items():
-        print(f"{k}\t::\t\tHS: {v[0]}\t\tMRS: {v[1]}\t\tARS: {v[2]}")
+    _test()

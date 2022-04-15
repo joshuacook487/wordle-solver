@@ -1,13 +1,13 @@
-from wordle_data import pickle_load, generate_responses, sort_dict_by_value
+from wordle_data import pickle_load, generate_responses
 
 
-def eliminate_answers(guess, response, answers):
+def eliminate_answers(guess, response, remaining_words):
 
     unused_indices = []
     for i in range(5):
 
         if response[i] == "2":
-            answers = _green_elimate(guess[i], i, answers)
+            remaining_words = _green_eliminate(guess[i], i, remaining_words)
 
         else:
             unused_indices.append(i)
@@ -15,18 +15,18 @@ def eliminate_answers(guess, response, answers):
     for j in unused_indices:
 
         if response[j] == "1":
-            answers = _yellow_eliminate(guess[j], j, unused_indices, answers)
+            remaining_words = _yellow_eliminate(guess[j], j, unused_indices, remaining_words)
 
         else:
-            answers = _black_eliminate(guess[j], unused_indices, answers)
+            remaining_words = _black_eliminate(guess[j], unused_indices, remaining_words)
 
-    return answers
+    return remaining_words
 
 
-def _green_elimate(letter, index, answers):
+def _green_eliminate(letter, index, remaining_words):
 
     new_words = []
-    for word in answers:
+    for word in remaining_words:
 
         if word[index] == letter:
             new_words.append(word)
@@ -34,32 +34,10 @@ def _green_elimate(letter, index, answers):
     return new_words
 
 
-# def _yellow_elim(letter, index, remaining_indices, answers):
-#     new_words = []
-#
-#     for word in answers:
-#         word_letters = ""
-#
-#         for i in range(5):
-#             if i == index:
-#
-#                 word_letters += "_"
-#
-#             elif i in remaining_indices:
-#                 word_letters += word[i]
-#
-#             else:
-#                 word_letters += "_"
-#
-#         if letter in word_letters:
-#             new_words.append(word)
-#
-#     return new_words
-
-def _yellow_eliminate(letter, index, remaining_indices, answers):
+def _yellow_eliminate(letter, index, remaining_indices, remaining_words):
     new_words = []
 
-    for word in answers:
+    for word in remaining_words:
         if not word[index] == letter:
             for i in remaining_indices:
                 if word[i] == letter:
@@ -69,10 +47,10 @@ def _yellow_eliminate(letter, index, remaining_indices, answers):
     return new_words
 
 
-def _black_eliminate(letter, remaining_indices, answers):
+def _black_eliminate(letter, remaining_indices, remaining_words):
     new_words = []
 
-    for word in answers:
+    for word in remaining_words:
         for i in remaining_indices:
             if word[i] == letter:
                 break
@@ -82,36 +60,24 @@ def _black_eliminate(letter, remaining_indices, answers):
     return new_words
 
 
-if __name__ == "__main__":
+def _test():
     answer_words = pickle_load("answer_words.pickle")
 
-    answer_words = eliminate_answers("raise", "00000", answer_words)
-    answer_words = eliminate_answers("godly", "02000", answer_words)
-    answer_words = eliminate_answers("mount", "02001", answer_words)
-
-    max_answers = {}
     for w in answer_words:
         max_answer = 0
         max_r = ""
         for r in generate_responses():
             reduced_answers = len(eliminate_answers(w, r, answer_words))
-            if reduced_answers >= max_answer:
+            if reduced_answers > 250:
+                break
+
+            elif reduced_answers >= max_answer:
                 max_answer = reduced_answers
                 max_r = r
 
-        key = (w, max_r)
+        else:
+            print(w, max_answer)
 
-        max_answers[key] = max_answer
 
-    sorted_max_answers = sort_dict_by_value(max_answers)
-
-    for k, v in sorted_max_answers.items():
-        print(k[0], k[1], v)
-
-    # print(len(answer_words))
-    # print("")
-    # for e, a in enumerate(answer_words):
-    #     s = "\t"
-    #     if e % 5 == 4:
-    #         s = "\n"
-    #     print(a, end=s)
+if __name__ == "__main__":
+    _test()
