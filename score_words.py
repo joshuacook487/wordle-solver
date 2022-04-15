@@ -39,8 +39,8 @@ def score_elimination(words):
             remaining_words = len(eliminate_answers(guess, r, words))
 
             guess_responses[
-                int(r[0])][int(r[1])][int(r[2])][int(r[3])][int(r[4])] \
-                = remaining_words
+                int(r[0]), int(r[1]), int(r[2]), int(r[3]), int(r[4])
+            ] = remaining_words
 
             if remaining_words >= max_remaining:
                 max_remaining = remaining_words
@@ -52,12 +52,7 @@ def score_elimination(words):
             sum_remaining, sum_responses
         )
 
-        pruned_mean = np.true_divide(
-            (sum_remaining - max_remaining),
-            (sum_responses - 1)
-        )
-
-        yield guess, max_remaining, mean_remaining, pruned_mean
+        yield guess, max_remaining, mean_remaining
 
 
 def _test():
@@ -68,15 +63,14 @@ def _test():
     #     if w >= high_score:
     #         print(v, w)
 
-    for x, y, z, z0 in score_elimination(answer_words):
+    print("\n\t\t\tWorst-case Elim.\tAverage Elim.")
+    for x, y, z in score_elimination(answer_words):
 
         if y <= 200:
-            print(x, y, z, z0, sep="\t\t")
+            print(f"{x}\t\t{y}\t\t\t\t\t{z:.3f}")
 
         elif z <= 17:
-            print(x, y, z, z0, sep="\t\t")
-
-
+            print(f"{x}\t\t{y}\t\t\t\t\t{z:.3f}")
 
 
 if __name__ == "__main__":
