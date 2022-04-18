@@ -1,4 +1,4 @@
-from wordle_data import pickle_load, generate_responses
+from WordleInfo import SOLUTIONS, generate_responses
 from resolve_guess import resolve_guess
 from eliminate_answers import eliminate_answers
 import numpy as np
@@ -56,15 +56,9 @@ def score_elimination(words):
 
 
 def _test():
-    answer_words = pickle_load("answer_words.pickle")
-    high_score = 600
-
-    # for v, w in score_by_info(answer_words):
-    #     if w >= high_score:
-    #         print(v, w)
 
     print("\n\t\t\tWorst-case Elim.\tAverage Elim.")
-    for x, y, z in score_elimination(answer_words):
+    for x, y, z in score_elimination(SOLUTIONS):
 
         if y <= 200:
             print(f"{x}\t\t{y}\t\t\t\t\t{z:.3f}")
