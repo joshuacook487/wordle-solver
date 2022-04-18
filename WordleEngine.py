@@ -1,8 +1,6 @@
 from random import randint
-from wordle_data import pickle_load
+from WordleInfo import SOLUTIONS, ALL_WORDS
 from resolve_guess import resolve_guess
-
-wordle_words = pickle_load("wordle_words.pickle")
 
 
 class WordleEngine:
@@ -10,6 +8,7 @@ class WordleEngine:
         self._solution = solution
         self._state = "00000"
         self._guess_count = 0
+        self._log = {}
 
     @property
     def state(self):
@@ -19,8 +18,12 @@ class WordleEngine:
     def guess_count(self):
         return self._guess_count
 
+    @property
+    def log(self):
+        return self._log
+
     def take_guess(self, attempt):
-        if attempt not in wordle_words:
+        if attempt not in ALL_WORDS:
             return -1
         else:
             self._guess_count += 1
@@ -58,12 +61,12 @@ class WordleEngine:
 if __name__ == "__main__":
     test_word = input("Test: ")
 
-    if test_word.strip() in wordle_words:
+    if test_word.strip() in ALL_WORDS:
         a_word = test_word
 
     else:
-        all_answers = pickle_load("answer_words.pickle")
-        a_word = all_answers[randint(0, 2315)]
+        print("Input invalid. Using random word.")
+        a_word = SOLUTIONS[randint(0, 2315)]
 
     a_wordle = WordleEngine(a_word)
     a_wordle.game_with_human()
